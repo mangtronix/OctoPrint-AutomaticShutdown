@@ -75,7 +75,7 @@ $(function() {
             }
             if (data.type == "timeout") {
                 if (data.timeout_value > 0) {
-                    self.timeoutPopupOptions.text = self.timeoutPopupText + data.timeout_value;
+                    self.timeoutPopupOptions.text = self.timeoutPopupText + data.timeout_value + " seconds";
                     if (self.timeoutPopup !== undefined) {
                         self.timeoutPopup.update(self.timeoutPopupOptions);
                     } else {

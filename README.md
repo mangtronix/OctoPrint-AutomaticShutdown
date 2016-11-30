@@ -6,15 +6,21 @@ The user can enable automatic shutdown for each print by using a checkbox in the
 
 ![Sidebar](http://i.imgur.com/e79FxXv.png)
 
+This version of the shutdown plugin allows you to specify a shell command and delay before running the command.
+
 ## Setup
 
 Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wiki/Plugin:-Plugin-Manager)
 or manually using this URL:
 
-    https://github.com/OctoPrint/OctoPrint-AutomaticShutdown/archive/master.zip
+    https://github.com/mangtronix/OctoPrint-AutomaticShutdown/archive/master.zip
 
 ## Configuration
 
-In order for the plugin work, the systemShutdownCommand must be set within the settings.
+The shutdown command and delay before running the command can be set in Settings/Automatic Shutdown.
 
-This setting can be edited in OctoPrint "Settings/Server/Shutdown system".
+## Credits
+
+Originally from https://github.com/OctoPrint/OctoPrint-AutomaticShutdown
+
+Modified by Michael Ang / mangtronix (http://michaelang.com)

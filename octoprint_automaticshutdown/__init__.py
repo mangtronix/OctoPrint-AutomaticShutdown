@@ -17,19 +17,28 @@ class AutomaticshutdownPlugin(octoprint.plugin.TemplatePlugin,
 		self._timeout_value = None
 		self._timer = None
 
+	def on_after_startup(self):
+		self._logger.info("Automatic shutdown command: %s" % self._settings.get(["command"]))
+
 	def get_assets(self):
 		return dict(js=["js/automaticshutdown.js"])
 
 	def get_template_configs(self):
-		return [dict(type="sidebar",
-			name="Automatic Shutdown",
-			custom_bindings=False,
-			icon="power-off")]
+		return [
+			dict(type="sidebar",
+				name="Automatic Shutdown",
+				custom_bindings=False,
+				icon="power-off"),
+			dict(type="settings", custom_bindings=False),
+		]
 
 	def get_api_commands(self):
 		return dict(enable=[],
 			disable=[],
 			abort=[])
+
+	def get_settings_defaults(self):
+		return dict(command="", delay=300)
 
 	def on_api_command(self, command, data):
 		import flask
@@ -49,15 +58,23 @@ class AutomaticshutdownPlugin(octoprint.plugin.TemplatePlugin,
 				self._timer = None
 		if event != Events.PRINT_DONE:
 			return
-		if not self._automatic_shutdown_enabled or not self._settings.global_get(["server", "commands", "systemShutdownCommand"]):
+		if not self._automatic_shutdown_enabled or not self._shutdown_command():
 			return
 		if self._timer is not None:
 			return
 
-		self._timeout_value = 10
+		try:
+			self._timeout_value = int(self._settings.get(["delay"]))
+		except ValueError:
+			self._logger.info("automaticshutdown: Invalid delay value, not shutting down")
+			return
+
 		self._timer = RepeatedTimer(1, self._timer_task)
 		self._timer.start()
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="timeout", timeout_value=self._timeout_value))
+
+	def _shutdown_command(self):
+		return self._settings.get(["command"])
 
 	def _timer_task(self):
 		self._timeout_value -= 1
@@ -68,11 +85,10 @@ class AutomaticshutdownPlugin(octoprint.plugin.TemplatePlugin,
 			self._shutdown_system()
 
 	def _shutdown_system(self):
-		shutdown_command = self._settings.global_get(["server", "commands", "systemShutdownCommand"])
-		self._logger.info("Shutting down system with command: {command}".format(command=shutdown_command))
+		self._logger.info("Shutting down system with command: {command}".format(command=self._shutdown_command()))
 		try:
 			import sarge
-			p = sarge.run(shutdown_command, async=True)
+			p = sarge.run(self._shutdown_command(), async=True)
 		except Exception as e:
 			self._logger.exception("Error when shutting down: {error}".format(error=e))
 			return
