@@ -47,15 +47,17 @@ class AutomaticshutdownPlugin(octoprint.plugin.TemplatePlugin,
 		elif command == "disable":
 			self._automatic_shutdown_enabled = False
 		elif command == "abort":
-			self._timer.cancel()
+			if self._timer is not None:
+				self._timer.cancel()
 			self._logger.info("Shutdown aborted.")
 
 	def on_event(self, event, payload):
 		if event == Events.PRINT_STARTED:
-			# Clear any dead timer (from aborted shutdown)
+			# Clear any existing timer (from aborted shutdown, or shutdown waiting to happen)
 			if self._timer is not None:
 				self._timer.cancel()
 				self._timer = None
+				self._plugin_manager.send_plugin_message(self._identifier, dict(type="timeout", timeout_value=-1))
 		if event != Events.PRINT_DONE:
 			return
 		if not self._automatic_shutdown_enabled or not self._shutdown_command():
